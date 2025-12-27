@@ -53,14 +53,13 @@ export class LLMProvider {
       throw new Error("No LLM provider available");
     }
 
-    const messages = [
-      { role: "system", content: systemPrompt },
-      ...context.map(m => ({
-        role: m.sender === "user" ? "user" : "assistant",
-        content: m.text,
-      })),
-      { role: "user", content: userMessage },
-    ];
+     const messages = [
+        { role: "system", content: systemPrompt },
+        ...context.map(m => ({
+          role: m.sender === "user" ? "user" : "assistant",
+          content: m.text,
+        })),
+        { role: "user", content: userMessage },] as Groq.Chat.ChatCompletionMessageParam[];
     console.log(messages);
     const completion = await this.groq.chat.completions.create({
       model: "llama-3.1-8b-instant",
