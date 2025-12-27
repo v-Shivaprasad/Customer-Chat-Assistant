@@ -19,6 +19,14 @@ const llm = new LLMProvider();
     }
         )();
 
+
+app.get("/",async (req ,res)=>{
+  try {
+    return "Hello world";
+  } catch (error) {
+    console.log(error);
+  }
+})
 app.post("/chat/message", async (req, res) => {
   try {
     const { rmessage, sessionId } = req.body;
