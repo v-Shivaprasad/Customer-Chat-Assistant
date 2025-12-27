@@ -3,13 +3,12 @@ import { Pool } from "pg";
 export class CHATDB {
   private pool: Pool;
 
-  constructor() {
+   constructor() {
     this.pool = new Pool({
-      host: process.env.DB_HOST || "localhost",
-      port: 5432,
-      user: process.env.DB_USER || "chatuser",
-      password: process.env.DB_PASSWORD || "chatpass",
-      database: process.env.DB_NAME || "chatdb",
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === "production"
+        ? { rejectUnauthorized: false }
+        : false,
     });
   }
 
