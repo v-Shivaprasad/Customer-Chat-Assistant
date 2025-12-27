@@ -26,7 +26,7 @@ app.use((req, _res, next) => {
 });
 app.get("/",async (req ,res)=>{
   try {
-    return "Hello world";
+    res.send("Hello world");
   } catch (error) {
     console.log(error);
   }
@@ -87,7 +87,7 @@ app.get("/chat/:sessionId", async (req, res) => {
 });
 
 
-app.listen(3000, "0.0.0.0", () => {
+app.listen(3000, '0.0.0.0', () => {
   console.log(`Server running on port 3000`);
 });
 
