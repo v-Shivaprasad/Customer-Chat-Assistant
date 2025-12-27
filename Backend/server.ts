@@ -19,7 +19,11 @@ const llm = new LLMProvider();
     }
         )();
 
-
+app.use((req, _res, next) => {
+  const fullUrl = `${req.protocol}://${req.get("host")}${req.originalUrl}`;
+  console.log(`[${req.method}] ${fullUrl}`);
+  next();
+});
 app.get("/",async (req ,res)=>{
   try {
     return "Hello world";
