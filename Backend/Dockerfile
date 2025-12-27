@@ -8,5 +8,6 @@ RUN npm ci
 COPY . .
 
 RUN npx tsc
+EXPOSE 3000
 
 CMD ["node", "dist/server.js"]
