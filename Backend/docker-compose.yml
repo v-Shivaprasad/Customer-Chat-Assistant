@@ -1,4 +1,16 @@
 services:
+  backend:
+    build: .
+    container_name: chat_backend
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+    command: ["node", "dist/server.js"]
+
   postgres:
     image: postgres:16
     container_name: chat_postgres
@@ -10,6 +22,7 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+
   redis:
     image: redis:7
     container_name: chat_redis

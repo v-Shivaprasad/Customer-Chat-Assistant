@@ -7,4 +7,6 @@ RUN npm ci
 
 COPY . .
 
-CMD ["node", "server.ts"]
+RUN npm run build
+
+CMD ["node", "dist/server.js"]
