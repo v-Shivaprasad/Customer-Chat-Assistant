@@ -1,5 +1,4 @@
-import React from 'react'
-    import ChatPage from './components/ChatPage'
+import ChatPage from './components/ChatPage'
 
     function App() {
       return (
