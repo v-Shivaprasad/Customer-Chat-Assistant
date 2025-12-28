@@ -11,9 +11,10 @@ interface Message {
   sender: "user" | "ai";
   text: string;
 }
+import "./chat.css";
 
-// const API_URL = "https://customer-chat-backend.onrender.com";
-const API_URL = "http://localhost:3000";
+const API_URL = "https://customer-chat-backend.onrender.com";
+// const API_URL = "http://localhost:3000";
 
 const MAX_CHARS = 180;
 
@@ -182,7 +183,26 @@ const ChatPage: React.FC = () => {
               Start a conversation 👋
             </div>
           ) : (
-            messages.map(renderMessage)
+            <>
+            {messages.map(renderMessage)}
+            {isSending && (
+              <div className="flex items-start gap-3 mb-4">
+                <div className="bg-blue-500 rounded-full p-2 text-white">
+                  <Bot size={18} />
+                </div>
+
+                <div className="bg-gray-200 text-gray-800 p-3 rounded-lg rounded-tl-none max-w-xs md:max-w-md">
+                  <div className="flex gap-2">
+                    <span className="dot" />
+                    <span className="dot" />
+                    <span className="dot" />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            </>
+
           )}
           <div ref={messagesEndRef} />
         </main>
