@@ -78,6 +78,12 @@ app.post("/chat/message", async (req, res) => {
       return res.status(400).json({ error: "Empty message" });
     }
 
+    if (rmessage.length > 200) {
+      return res
+        .status(400)
+        .json({ error: "Message is too long (max 200 characters)" });
+    }
+
     const message = `Reply only in English ${rmessage}`;
     const conversationId =
       sessionId && sessionId !== "undefined" ? sessionId : uuidv4();
