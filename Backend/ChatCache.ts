@@ -2,7 +2,7 @@ import { createClient, RedisClientType } from "redis";
 
 export class ChatCache {
   private redis: RedisClientType;
-  private readonly MAX_MESSAGES = 3;
+  private readonly DEFAULT_TURNS = 3;
 
   constructor() {
     const username = process.env.REDIS_USERNAME || "default";
@@ -18,8 +18,7 @@ export class ChatCache {
       socket: {
         host,
         port,
-        // Un-comment if your Redis requires TLS (many Redis Cloud plans do):
-        // tls: true
+        // tls: true // enable if your instance requires TLS
       },
     });
 
@@ -36,13 +35,26 @@ export class ChatCache {
     return `chat:context:${conversationId}`;
   }
 
-  async addMessage(conversationId: string, sender: "user" | "ai", text: string) {
+  async addMessage(
+    conversationId: string,
+    sender: "user" | "ai",
+    text: string
+  ) {
     await this.connect();
     const k = this.key(conversationId);
 
     await this.redis.rPush(k, JSON.stringify({ sender, text }));
-    await this.redis.lTrim(k, -this.MAX_MESSAGES, -1);
+
+    // keep TTL (no trimming here!)
     await this.redis.expire(k, 300);
+  }
+
+  async trim(conversationId: string, turns = this.DEFAULT_TURNS) {
+    await this.connect();
+    const k = this.key(conversationId);
+
+    // keep last N full user+ai pairs
+    await this.redis.lTrim(k, -(turns * 2), -1);
   }
 
   async getContext(conversationId: string) {

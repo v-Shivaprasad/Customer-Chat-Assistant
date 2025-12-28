@@ -24,6 +24,45 @@ app.use((req, _res, next) => {
   console.log(`[${req.method}] ${fullUrl}`);
   next();
 });
+
+app.get("/health", async (req, res) => {
+  const sessionId = req.query.sessionId as string | undefined;
+
+  try {
+    // Check Postgres
+    await db["pool"].query("SELECT 1");
+
+    // Check Redis
+    await cache.connect();
+    const redisPing = await (cache as any)["redis"].ping();
+
+    let contextPreview = null;
+
+    if (sessionId) {
+      const ctx = await cache.getContext(sessionId);
+      contextPreview = {
+        count: ctx.length,
+        last: ctx.at(-1) ?? null, 
+      };
+    }
+
+    res.json({
+      status: "ok",
+      postgres: "connected",
+      redis: redisPing === "PONG" ? "connected" : "unknown",
+      cachePreview: contextPreview,
+      timestamp: new Date().toISOString(),
+    });
+
+  } catch (err) {
+    console.error("Health check failed:", err);
+    res.status(500).json({
+      status: "error",
+      error: (err as Error).message,
+    });
+  }
+});
+
 app.get("/",async (req ,res)=>{
   try {
     res.send("Hello world");
@@ -34,30 +73,34 @@ app.get("/",async (req ,res)=>{
 app.post("/chat/message", async (req, res) => {
   try {
     const { rmessage, sessionId } = req.body;
-    const message = `Reply only in English ${rmessage}`;
-    if (!message || !message.trim()) {
+
+    if (!rmessage || typeof rmessage !== "string" || !rmessage.trim()) {
       return res.status(400).json({ error: "Empty message" });
     }
 
-    const conversationId = sessionId && sessionId !== "undefined" ? sessionId:uuidv4();
+    const message = `Reply only in English ${rmessage}`;
+    const conversationId =
+      sessionId && sessionId !== "undefined" ? sessionId : uuidv4();
+
     await db.createConversation(conversationId);
 
     const context = await cache.getContext(conversationId);
     const systemPrompt = createSystemPrompt();
 
-    let reply:string|undefined;
-    try{
-        reply = await llm.generate(systemPrompt, context, message);
+    let reply: string | undefined;
 
-        if (!reply || !reply.trim()) {
-        reply =
-          "I’m unable to answer that right now. Please contact support.";
+    try {
+      reply = await llm.generate(systemPrompt, context, message);
+
+      if (!reply || !reply.trim()) {
+        reply = "I’m unable to answer that right now. Please contact support.";
       }
-    } 
-    catch(error) {
-        console.error(error);
+    } catch (error) {
+      console.error(error);
       return res.status(500).json({
-        reply: "Support agent unavailable. Please try again later.",sessionId: conversationId });
+        reply: "Support agent unavailable. Please try again later.",
+        sessionId: conversationId,
+      });
     }
 
     await db.saveMessage(uuidv4(), conversationId, "user", rmessage);
@@ -65,6 +108,8 @@ app.post("/chat/message", async (req, res) => {
 
     await cache.addMessage(conversationId, "user", rmessage);
     await cache.addMessage(conversationId, "ai", reply);
+
+    await cache.trim(conversationId);
 
     res.json({ reply, sessionId: conversationId });
   } catch (err) {

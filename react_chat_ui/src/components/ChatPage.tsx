@@ -12,7 +12,9 @@ interface Message {
   text: string;
 }
 
-const API_URL = "https://customer-chat-backend.onrender.com";
+// const API_URL = "https://customer-chat-backend.onrender.com";
+const API_URL = "http://localhost:3000";
+
 const MAX_CHARS = 180;
 
 const ChatPage: React.FC = () => {
